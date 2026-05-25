@@ -1,0 +1,29 @@
+package(default_visibility = ["//visibility:public"])
+
+# ── Top-level binary ──────────────────────────────────────────────────────────
+cc_binary(
+    name = "daydream_handler",
+    srcs = ["src/main.cpp"],
+    deps = [
+        "//src/core/engine:trading_engine",
+        "//src/core/indicators:indicators",
+        "//src/core/risk:risk_manager",
+        "//src/core/strategy:strategies",
+        "//src/ml/inference:inference_engine",
+        "//src/data:data_pipeline",
+        "//src/storage:storage",
+        "//src/logging:logging",
+        "//src/cli:cli",
+        "@spdlog//:spdlog",
+        "@nlohmann_json//:json",
+    ],
+    copts = ["-std=c++17"],
+)
+
+# ── Test suite ────────────────────────────────────────────────────────────────
+test_suite(
+    name = "all_tests",
+    tests = [
+        "//tests/unit:all_unit_tests",
+    ],
+)

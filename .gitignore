@@ -1,0 +1,36 @@
+# Build artifacts
+build/
+dist/
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CTestTestfile.cmake
+Makefile
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Runtime outputs
+logs/
+checkpoints/
+AUTOFIX.md
+
+# Python artifacts (not part of this C++ project)
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# Bazel
+bazel-*

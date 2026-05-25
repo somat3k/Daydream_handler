@@ -1,0 +1,76 @@
+name: ML – Model Training & Checkpoint Management
+
+on:
+  push:
+    paths:
+      - "src/ml/**"
+      - "configs/**"
+  workflow_dispatch:
+    inputs:
+      epochs:
+        description: "Training epochs"
+        required: false
+        default: "5"
+      symbol:
+        description: "Primary symbol"
+        required: false
+        default: "XAUUSD"
+
+jobs:
+  train_and_checkpoint:
+    name: Train & Checkpoint
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+
+    env:
+      EPOCHS:    ${{ github.event.inputs.epochs || '5' }}
+      SYMBOL:    ${{ github.event.inputs.symbol || 'XAUUSD' }}
+      CKPT_DIR:  checkpoints
+      LOG_DIR:   logs
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install build deps
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y cmake ninja-build gcc-12 g++-12
+
+      - name: Build engine (Release)
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DENABLE_TESTS=OFF \
+            -DUSE_REDIS=OFF \
+            -DUSE_LIBTORCH=OFF \
+            -DCMAKE_CXX_COMPILER=g++-12
+          cmake --build build --parallel $(nproc)
+
+      - name: Run replay (simulated training epochs)
+        run: |
+          mkdir -p data ${{ env.CKPT_DIR }} ${{ env.LOG_DIR }}
+          ./build/src/daydream_handler replay \
+            --symbol  ${{ env.SYMBOL }} \
+            --epochs  ${{ env.EPOCHS }} \
+            --ckpt-dir  ${{ env.CKPT_DIR }} \
+            --log-dir   ${{ env.LOG_DIR }}
+        continue-on-error: true
+
+      - name: Verify latest checkpoint
+        run: |
+          ./build/src/daydream_handler checkpoint \
+            --ckpt-dir ${{ env.CKPT_DIR }}
+
+      - name: Upload checkpoints
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-checkpoints-${{ github.run_number }}
+          path: ${{ env.CKPT_DIR }}/
+
+      - name: Upload telemetry
+        uses: actions/upload-artifact@v4
+        with:
+          name: telemetry-${{ github.run_number }}
+          path: ${{ env.LOG_DIR }}/telemetry/
