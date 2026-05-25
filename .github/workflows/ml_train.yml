@@ -20,6 +20,8 @@ jobs:
   train_and_checkpoint:
     name: Train & Checkpoint
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
 
     env:
       EPOCHS:    ${{ github.event.inputs.epochs || '5' }}

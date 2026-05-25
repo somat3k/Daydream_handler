@@ -30,6 +30,8 @@ jobs:
   build_and_test:
     name: Build & Test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -99,6 +101,8 @@ jobs:
   static_analysis:
     name: Static Analysis
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
     needs: build_and_test
 
     steps:
@@ -128,6 +132,8 @@ jobs:
   replay_simulation:
     name: Replay Simulation
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
     needs: build_and_test
 
     steps:
@@ -162,6 +168,8 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
     needs: [build_and_test, static_analysis]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
