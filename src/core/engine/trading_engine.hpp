@@ -13,6 +13,7 @@
 #include "../../core/risk/risk_manager.hpp"
 #include "../../ml/inference/inference_engine.hpp"
 #include "../../ml/inference/feature_composer.hpp"
+#include "../../ml/loader/model_loader.hpp"
 #include "../../logging/logger.hpp"
 #include "../../logging/telemetry.hpp"
 #include <vector>

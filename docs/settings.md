@@ -181,7 +181,8 @@ Options:
 |--------|---------|-------------|
 | `ENABLE_TESTS` | `ON` | Build unit and integration tests |
 | `ENABLE_TELEMETRY` | `ON` | Enable hyper-extensive telemetry |
-| `USE_LIBTORCH` | `ON` | Link LibTorch for ML inference |
+| `USE_LIBTORCH` | `ON` | Link LibTorch for TorchScript `.pt` ML inference |
+| `USE_ONNXRUNTIME` | `OFF` | Link ONNX Runtime for native `.onnx` ML inference |
 | `USE_REDIS` | `ON` | Link hiredis for Redis storage |
 | `CMAKE_BUILD_TYPE` | `Release` | `Release` / `Debug` / `RelWithDebInfo` |
 

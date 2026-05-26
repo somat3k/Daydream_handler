@@ -20,6 +20,7 @@ option(ENABLE_TESTS       "Build unit and integration tests"       ON)
 option(ENABLE_TELEMETRY   "Enable hyper-extensive telemetry mode"  ON)
 option(USE_LIBTORCH       "Link against LibTorch for ML inference" ON)
 option(USE_REDIS          "Link against hiredis for Redis storage" ON)
+option(USE_ONNXRUNTIME    "Link ONNX Runtime for native model inference (layer0_rebuild.onnx)" OFF)
 
 # ── CMake modules ────────────────────────────────────────────────────────────
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
@@ -42,6 +43,28 @@ if(USE_LIBTORCH)
     if(NOT Torch_FOUND)
         message(WARNING "LibTorch not found – ML inference will use stub backend")
         set(USE_LIBTORCH OFF)
+    endif()
+endif()
+
+if(USE_ONNXRUNTIME)
+    # Try system package first (libonnxruntime-dev), then FetchContent
+    find_package(onnxruntime QUIET)
+    if(NOT onnxruntime_FOUND)
+        # Attempt pkg-config path
+        find_library(ORT_LIB onnxruntime)
+        find_path(ORT_INCLUDE_DIR onnxruntime_cxx_api.h
+            PATHS /usr/include/onnxruntime /usr/local/include/onnxruntime
+                  /opt/onnxruntime/include)
+        if(ORT_LIB AND ORT_INCLUDE_DIR)
+            message(STATUS "ONNX Runtime found: lib=${ORT_LIB} inc=${ORT_INCLUDE_DIR}")
+            add_library(onnxruntime UNKNOWN IMPORTED)
+            set_target_properties(onnxruntime PROPERTIES
+                IMPORTED_LOCATION ${ORT_LIB}
+                INTERFACE_INCLUDE_DIRECTORIES ${ORT_INCLUDE_DIR})
+        else()
+            message(WARNING "ONNX Runtime not found – OnnxModel backend disabled")
+            set(USE_ONNXRUNTIME OFF)
+        endif()
     endif()
 endif()
 

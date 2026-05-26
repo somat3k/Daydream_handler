@@ -98,10 +98,43 @@ Daydream Handler is an institutional-grade C++ algorithmic trading system with:
 
 #### Models (HuggingFace `msomatothing/layer0`)
 
-| Model | Key | Description |
-|-------|-----|-------------|
-| Layer0 Merged | `layer0_merged` | Merged ensemble: Chronos + TimeSeries + DeepHermes + MTF + Numpy Logistics + Regressors + Gradient Booster |
-| Grand Unified | `grand_unified` | Full unified model: all Layer0 sub-systems + GNN + RL readout |
+| Model | Key | Artifact | Description |
+|-------|-----|----------|-------------|
+| Layer0 Merged | `layer0_merged` | `models/layer0_model_l0/layer0.safetensors` | Merged ensemble: Chronos + TimeSeries + DeepHermes + MTF + Numpy Logistics + Regressors + Gradient Booster |
+| Grand Unified | `grand_unified` | `models/layer0_model_l0/grand_unified_model.safetensors` + `grand_unified_manifest.json` | Full unified model: all Layer0 sub-systems + GNN + RL readout |
+| Model Merged | `model_merged` | `models/advanced_model/model_merged.safetensors` | Advanced merged ensemble |
+| Layer0 Rebuild | `layer0_rebuild` | `models/advanced_model/layer0_rebuild/layer0_rebuild.onnx` | Rebuilt Layer0 with 12 training epochs |
+
+#### Model Loader (`src/ml/loader/`)
+
+The `ModelLoader` class provides automatic discovery and loading of all model artifacts:
+
+```
+model_dir/
+  layer0_model_l0/
+    layer0.safetensors          → "layer0_merged"  (SafeTensorsModel)
+    grand_unified_model.safetensors → "grand_unified" (SafeTensorsModel)
+    grand_unified_manifest.json → architecture spec for grand_unified
+    replay_buffer.safetensors   → skipped (RL state, not inference)
+  advanced_model/
+    model_merged.safetensors    → "model_merged"   (SafeTensorsModel)
+    layer0_rebuild/
+      layer0_rebuild.onnx       → "layer0_rebuild" (OnnxModel if USE_ONNXRUNTIME)
+      training_log.csv          → imported into Telemetry scalars
+      snapshots/                → skipped (training artifacts)
+      eval/layer0_rebuild_summary.json → model metadata
+```
+
+**Discovery priority per key:** ONNX > safetensors > stub  
+**Stub fallback:** registered automatically when artifact is missing or model dir absent
+
+#### SafeTensors Reader (`src/ml/loader/safetensors_reader.hpp`)
+
+Header-only C++ parser for the safetensors binary format:
+- Parses 8-byte LE uint64 header length + JSON metadata
+- Reads F32/F16/BF16/F64 tensors into `std::vector<float>`
+- Handles BF16→F32 and F16→F32 conversion natively
+- Zero Python runtime dependency
 
 #### Feature Composer
 - Builds feature tensors from OHLCV windows + indicator values
@@ -112,9 +145,11 @@ Daydream Handler is an institutional-grade C++ algorithmic trading system with:
 - **Shapers** (`shape_to()`) and **Splitters** (`split_at()`)
 - Softmax for probability output
 
-#### Backends
-- **LibTorch** (primary): TorchScript `.pt` models  
-- **Stub** (fallback/CI): heuristic mean-trend classifier
+#### Backends (in priority order)
+1. **OnnxModel** (`USE_ONNXRUNTIME=ON`): ONNX Runtime C++ API, loads `.onnx` files, auto-detects input/output shapes
+2. **SafeTensorsModel** (always available): pure C++ MLP runner, auto-detects layer structure from tensor names, supports F32/F16/BF16 weights
+3. **TorchModel** (`USE_LIBTORCH=ON`): LibTorch TorchScript `.pt` models
+4. **StubModel** (fallback/CI): heuristic mean-trend classifier
 
 ---
 

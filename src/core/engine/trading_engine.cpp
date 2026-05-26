@@ -27,11 +27,7 @@ TradingEngine::TradingEngine(EngineConfig cfg)
     , m_composer(m_cfg.features)
     , m_log(dh::logging::get("engine"))
 {
-    // Register ML models
-    ml::ModelRegistry::instance().register_model(
-        "layer0", ml::models::make_layer0());
-    ml::ModelRegistry::instance().register_model(
-        "grand_unified", ml::models::make_grand_unified());
+    // Model registration is deferred to init() via ModelLoader
 }
 
 // ── init ──────────────────────────────────────────────────────────────────────
@@ -39,10 +35,26 @@ void TradingEngine::init()
 {
     m_log->info("Initialising TradingEngine v1.0");
 
-    // Load models
-    ml::ModelRegistry::instance().load_all(m_cfg.model_dir);
+    // ── Step 1: Discover and load model artifacts via ModelLoader ─────────────
+    // The loader walks model_dir, picks up .onnx / .safetensors / manifest files,
+    // and populates the ModelRegistry with fully-logged load results.
+    {
+        ml::loader::ModelLoader loader(m_cfg.model_dir);
+        int n = loader.discover_and_load(ml::ModelRegistry::instance());
+        m_log->info("ModelLoader: {} model(s) loaded from '{}'",
+                    n, m_cfg.model_dir);
 
-    // Wire strategies
+        // Import training artifacts into telemetry if present
+        std::string tlog = m_cfg.model_dir
+                         + "/advanced_model/layer0_rebuild/training_log.csv";
+        loader.import_training_log(tlog);
+
+        std::string teljsonl = m_cfg.model_dir
+                             + "/advanced_model/train_advanced_telemetry.jsonl";
+        loader.import_telemetry_jsonl(teljsonl);
+    }
+
+    // ── Step 2: Wire strategies ───────────────────────────────────────────────
     m_mux.add_strategy(
         std::make_unique<strategy::BreakoutStrategy>());
     m_mux.add_strategy(
@@ -50,15 +62,28 @@ void TradingEngine::init()
     m_mux.add_strategy(
         std::make_unique<strategy::SDZoneStrategy>());
 
-    // Attach primary model (layer0_merged) as gating model
-    try {
-        auto model = ml::ModelRegistry::instance().get("layer0");
-        m_mux.set_model(model);
-    } catch (...) {
-        m_log->warn("layer0 model not available – running without ML gate");
+    // ── Step 3: Attach primary gating model ───────────────────────────────────
+    // Prefer layer0_rebuild (ONNX/safetensors) if available, fall back to
+    // layer0_merged, then grand_unified, then any loaded model.
+    const std::vector<std::string> gate_priority = {
+        "layer0_rebuild", "layer0_merged", "layer0", "grand_unified"
+    };
+    bool gate_attached = false;
+    for (auto& key : gate_priority) {
+        try {
+            auto model = ml::ModelRegistry::instance().get(key);
+            m_mux.set_model(model);
+            m_log->info("ML gate attached: '{}' v{} loaded={} backend={}",
+                        key, model->version(), model->is_loaded(),
+                        model->hparams().value("backend", "?"));
+            gate_attached = true;
+            break;
+        } catch (const std::out_of_range&) { /* try next */ }
     }
+    if (!gate_attached)
+        m_log->warn("No primary gating model found – running without ML gate");
 
-    // Initialise telemetry hparams
+    // ── Step 4: Telemetry hparams ─────────────────────────────────────────────
     telemetry::Telemetry::instance().log_hparams({
         {"model_dir",       m_cfg.model_dir},
         {"checkpoint_dir",  m_cfg.checkpoint_dir},
@@ -67,11 +92,12 @@ void TradingEngine::init()
         {"feature_window",  m_cfg.features.window},
         {"project_dim",     m_cfg.features.project_dim},
         {"symbols",         m_cfg.symbols.size()},
-        {"live_mode",       m_cfg.live_mode}
+        {"live_mode",       m_cfg.live_mode},
+        {"registry_size",   ml::ModelRegistry::instance().keys().size()}
     });
 
     std::filesystem::create_directories(m_cfg.checkpoint_dir);
-    m_log->info("Engine ready. Symbols={} Models={}",
+    m_log->info("Engine ready. Symbols={} Registry={}",
                 m_cfg.symbols.size(),
                 ml::ModelRegistry::instance().keys().size());
 }

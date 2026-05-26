@@ -2,6 +2,7 @@ add_subdirectory(logging)
 add_subdirectory(data)
 add_subdirectory(storage)
 add_subdirectory(ml/inference)
+add_subdirectory(ml/loader)
 add_subdirectory(core/indicators)
 add_subdirectory(core/risk)
 add_subdirectory(core/strategy)
@@ -15,6 +16,7 @@ target_link_libraries(daydream_handler PRIVATE
     strategies
     indicators
     inference_engine
+    model_loader
     storage
     logging
     Threads::Threads

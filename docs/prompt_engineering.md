@@ -95,14 +95,20 @@ R = Σ [
 - [x] Risk manager (polygonal SL/TP)
 - [x] Redis client + checkpoint manager
 - [x] Hyper-extensive telemetry
-- [ ] LibTorch model loading (`TorchModel::load`)
-- [ ] HuggingFace model downloader
+- [x] LibTorch model loading (`TorchModel::load`)
+- [x] SafeTensors weight file reader (`SafeTensorsFile::parse_header`, `read_tensor_f32`)
+- [x] Native model loader (`ModelLoader::discover_and_load`)
+- [x] ONNX Runtime native inference backend (`OnnxModel`, `USE_ONNXRUNTIME`)
+- [x] Training log CSV / telemetry JSONL import into Telemetry system
+- [ ] HuggingFace model downloader (online fetch from msomatothing/layer0)
 - [ ] Broker plugin interface (live mode)
 - [ ] WebSocket market data feed
 - [ ] RL environment wrapper
 
 ### ML / Training
-- [ ] Safetensors weight file reader
+- [x] Safetensors weight file reader
+- [x] Native model loader (SafeTensorsModel, OnnxModel)
+- [x] Training log / telemetry JSONL import
 - [ ] Custom Chronos adaptor for OHLCV input
 - [ ] GNN market topology graph builder
 - [ ] Gradient booster meta-learner wrapper

@@ -7,6 +7,7 @@ target_link_libraries(trading_engine PUBLIC
     indicators
     risk_manager
     inference_engine
+    model_loader
     data_pipeline
     logging
     nlohmann_json::nlohmann_json

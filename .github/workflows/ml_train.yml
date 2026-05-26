@@ -38,13 +38,23 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y cmake ninja-build gcc-12 g++-12
 
+      - name: Install ONNX Runtime (optional, enables native OnnxModel backend)
+        id: onnxruntime
+        continue-on-error: true
+        run: |
+          # Install libonnxruntime-dev if available; skip silently if not
+          sudo apt-get install -y libonnxruntime-dev 2>/dev/null || true
+          dpkg -l libonnxruntime-dev 2>/dev/null && echo "ort_found=true" >> "$GITHUB_OUTPUT" || echo "ort_found=false" >> "$GITHUB_OUTPUT"
+
       - name: Build engine (Release)
         run: |
+          USE_ORT=${{ steps.onnxruntime.outputs.ort_found == 'true' && 'ON' || 'OFF' }}
           cmake -S . -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DENABLE_TESTS=OFF \
             -DUSE_REDIS=OFF \
             -DUSE_LIBTORCH=OFF \
+            -DUSE_ONNXRUNTIME=${USE_ORT} \
             -DCMAKE_CXX_COMPILER=g++-12
           cmake --build build --parallel $(nproc)
 

@@ -8,6 +8,7 @@ add_executable(unit_tests
     unit/test_risk_manager.cpp
     unit/test_checkpoint.cpp
     unit/test_inference.cpp
+    unit/test_model_loader.cpp
 )
 
 target_include_directories(unit_tests PRIVATE
@@ -20,6 +21,7 @@ target_link_libraries(unit_tests PRIVATE
     strategies
     indicators
     inference_engine
+    model_loader
     storage
     logging
 )
