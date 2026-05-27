@@ -1,3 +1,201 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:9d8d51feae6f03f2bca13584af859b0b11f445b7b8749e01efcc01d7d17623ac
-size 6189
+name: Bitget Trading
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Runtime mode"
+        required: true
+        default: "paper"
+        type: choice
+        options: [replay, paper, live]
+      symbols:
+        description: "Comma-separated symbols (engine symbols, e.g. BTCUSD,ETHUSD)"
+        required: false
+        default: "BTCUSD,ETHUSD"
+      timeframes:
+        description: "Comma-separated timeframes (M1,M5,M15,H1,H4,D1)"
+        required: false
+        default: "H1"
+      epochs:
+        description: "Replay epochs (replay mode only)"
+        required: false
+        default: "1"
+      runtime_seconds:
+        description: "Paper/live runtime in seconds"
+        required: false
+        default: "900"
+      sandbox:
+        description: "Use Bitget sandbox/paper account"
+        required: false
+        default: true
+        type: boolean
+      kill_switch:
+        description: "Disable real order submission even in live mode"
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bitget-trading-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  BUILD_TYPE: Release
+  SYMBOLS: ${{ inputs.symbols || 'BTCUSD,ETHUSD' }}
+  TIMEFRAMES: ${{ inputs.timeframes || 'H1' }}
+  EPOCHS: ${{ inputs.epochs || '1' }}
+  RUNTIME_SECONDS: ${{ inputs.runtime_seconds || '900' }}
+  MODE: ${{ inputs.mode || 'paper' }}
+  MAX_POSITIONS: "3"
+  MAX_DAILY_LOSS: "250"
+
+jobs:
+  trading_non_live:
+    name: Trading (${{ inputs.mode }})
+    if: ${{ inputs.mode != 'live' }}
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y \
+            cmake ninja-build gcc-12 g++-12 \
+            libcurl4-openssl-dev libssl-dev libhdf5-dev
+
+      - name: Configure CMake
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DENABLE_TESTS=ON \
+            -DUSE_REDIS=OFF \
+            -DUSE_LIBTORCH=OFF \
+            -DUSE_HDF5=ON \
+            -DUSE_BITGET=ON \
+            -DCMAKE_CXX_COMPILER=g++-12
+
+      - name: Build
+        run: cmake --build build --parallel $(nproc)
+
+      - name: Unit tests
+        working-directory: build
+        run: ctest --output-on-failure
+
+      - name: Run trading engine
+        env:
+          BITGET_API_KEY: ${{ secrets.BITGET_API_KEY }}
+          BITGET_SECRET_KEY: ${{ secrets.BITGET_SECRET_KEY }}
+          BITGET_PASSPHRASE: ${{ secrets.BITGET_PASSPHRASE }}
+        run: |
+          mkdir -p logs checkpoints logs/reports
+          if [ "${MODE}" = "replay" ]; then
+            ./build/src/daydream_handler replay \
+              --symbols "${SYMBOLS}" \
+              --timeframes "${TIMEFRAMES}" \
+              --epochs "${EPOCHS}" \
+              --max-positions "${MAX_POSITIONS}" \
+              --max-daily-loss "${MAX_DAILY_LOSS}" \
+              --kill-switch
+          else
+            SANDBOX_FLAG="--sandbox"
+            if [ "${{ inputs.sandbox }}" != "true" ]; then
+              SANDBOX_FLAG="--no-sandbox"
+            fi
+            ./build/src/daydream_handler paper \
+              --symbols "${SYMBOLS}" \
+              --timeframes "${TIMEFRAMES}" \
+              --runtime-seconds "${RUNTIME_SECONDS}" \
+              --max-positions "${MAX_POSITIONS}" \
+              --max-daily-loss "${MAX_DAILY_LOSS}" \
+              ${SANDBOX_FLAG} \
+              --kill-switch
+          fi
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bitget-trading-${{ github.run_number }}-${{ inputs.mode }}
+          path: |
+            logs/
+            checkpoints/
+
+  trading_live:
+    name: Trading (live)
+    if: ${{ inputs.mode == 'live' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-22.04
+    environment: live-trading
+    steps:
+      - name: Guard branch and approval
+        run: |
+          if [ "${GITHUB_REF}" != "refs/heads/main" ]; then
+            echo "Live trading only allowed from main branch"
+            exit 1
+          fi
+          echo "Live environment approval must be configured on 'live-trading'"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y \
+            cmake ninja-build gcc-12 g++-12 \
+            libcurl4-openssl-dev libssl-dev libhdf5-dev
+
+      - name: Configure and build
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DENABLE_TESTS=OFF \
+            -DUSE_REDIS=OFF \
+            -DUSE_LIBTORCH=OFF \
+            -DUSE_HDF5=ON \
+            -DUSE_BITGET=ON \
+            -DCMAKE_CXX_COMPILER=g++-12
+          cmake --build build --parallel $(nproc)
+
+      - name: Run live trading
+        env:
+          BITGET_API_KEY: ${{ secrets.BITGET_API_KEY }}
+          BITGET_SECRET_KEY: ${{ secrets.BITGET_SECRET_KEY }}
+          BITGET_PASSPHRASE: ${{ secrets.BITGET_PASSPHRASE }}
+        run: |
+          mkdir -p logs checkpoints logs/reports
+          SANDBOX_FLAG="--no-sandbox"
+          if [ "${{ inputs.sandbox }}" = "true" ]; then
+            SANDBOX_FLAG="--sandbox"
+          fi
+          KILL_SWITCH_FLAG=""
+          if [ "${{ inputs.kill_switch }}" = "true" ]; then
+            KILL_SWITCH_FLAG="--kill-switch"
+          fi
+          ./build/src/daydream_handler live \
+            --mode live \
+            --symbols "${SYMBOLS}" \
+            --timeframes "${TIMEFRAMES}" \
+            --runtime-seconds "${RUNTIME_SECONDS}" \
+            --max-positions "${MAX_POSITIONS}" \
+            --max-daily-loss "${MAX_DAILY_LOSS}" \
+            ${SANDBOX_FLAG} \
+            ${KILL_SWITCH_FLAG}
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bitget-trading-${{ github.run_number }}-live
+          path: |
+            logs/
+            checkpoints/
