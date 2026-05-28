@@ -28,6 +28,7 @@ jobs:
       SYMBOL:    ${{ github.event.inputs.symbol || 'XAUUSD' }}
       CKPT_DIR:  checkpoints
       LOG_DIR:   logs
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Checkout
