@@ -1,3 +1,12 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:bd1110b5780f41d659ec9751e5c25a37abb9399581a676371c86a7a3ca2bee1a
-size 339
+add_library(storage STATIC
+    redis_client.cpp
+)
+target_include_directories(storage PUBLIC ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(storage PUBLIC
+    logging
+    nlohmann_json::nlohmann_json
+)
+if(USE_REDIS)
+    target_link_libraries(storage PUBLIC hiredis::hiredis)
+    target_compile_definitions(storage PUBLIC USE_REDIS)
+endif()

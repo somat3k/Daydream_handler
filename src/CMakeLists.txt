@@ -1,3 +1,22 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:1f3fc1da007ca3419f8fbb8c419c047376f2ceda214f3c77bf13b865cb4e519a
-size 544
+add_subdirectory(logging)
+add_subdirectory(data)
+add_subdirectory(storage)
+add_subdirectory(ml/inference)
+add_subdirectory(core/indicators)
+add_subdirectory(core/risk)
+add_subdirectory(core/strategy)
+add_subdirectory(core/engine)
+add_subdirectory(cli)
+
+add_executable(daydream_handler main.cpp)
+target_link_libraries(daydream_handler PRIVATE
+    cli
+    trading_engine
+    strategies
+    indicators
+    inference_engine
+    storage
+    logging
+    Threads::Threads
+)
+target_include_directories(daydream_handler PRIVATE ${CMAKE_SOURCE_DIR}/src)
