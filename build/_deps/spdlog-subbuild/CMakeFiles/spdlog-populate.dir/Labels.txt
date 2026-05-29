@@ -1,0 +1,14 @@
+# Target labels
+ spdlog-populate
+# Source files and their labels
+/tmp/workspace/somat3k/Daydream_handler/build/_deps/spdlog-subbuild/CMakeFiles/spdlog-populate
+/tmp/workspace/somat3k/Daydream_handler/build/_deps/spdlog-subbuild/CMakeFiles/spdlog-populate.rule
+/tmp/workspace/somat3k/Daydream_handler/build/_deps/spdlog-subbuild/CMakeFiles/spdlog-populate-complete.rule
+/tmp/workspace/somat3k/Daydream_handler/build/_deps/spdlog-subbuild/spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-build.rule
+/tmp/workspace/somat3k/Daydream_handler/build/_deps/spdlog-subbuild/spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-configure.rule
+/tmp/workspace/somat3k/Daydream_handler/build/_deps/spdlog-subbuild/spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-download.rule
+/tmp/workspace/somat3k/Daydream_handler/build/_deps/spdlog-subbuild/spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-install.rule
+/tmp/workspace/somat3k/Daydream_handler/build/_deps/spdlog-subbuild/spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-mkdir.rule
+/tmp/workspace/somat3k/Daydream_handler/build/_deps/spdlog-subbuild/spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-patch.rule
+/tmp/workspace/somat3k/Daydream_handler/build/_deps/spdlog-subbuild/spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-test.rule
+/tmp/workspace/somat3k/Daydream_handler/build/_deps/spdlog-subbuild/spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-update.rule

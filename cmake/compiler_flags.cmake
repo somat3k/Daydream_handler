@@ -1,3 +1,14 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:7d11b079890caf580cfeb20921b76f9906126e30f35508381fa17f613771caa4
-size 608
+# ── Compiler flags ────────────────────────────────────────────────────────────
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    add_compile_options(
+        -Wall -Wextra -Wpedantic
+        -Wno-unused-parameter
+        $<$<CONFIG:Release>:-O3>
+        $<$<CONFIG:Release>:-march=native>
+        $<$<CONFIG:Release>:-DNDEBUG>
+        $<$<CONFIG:Debug>:-g3>
+    )
+elseif(MSVC)
+    add_compile_options(/W4 /WX- /permissive-)
+    add_compile_options($<$<CONFIG:Release>:/O2>)
+endif()

@@ -1,0 +1,21 @@
+# ninja log v7
+0	5	1780088944551342506	spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-mkdir	6cb187dd256ee54a
+0	5	1780088944551342506	/tmp/workspace/somat3k/Daydream_handler/build/_deps/spdlog-subbuild/spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-mkdir	6cb187dd256ee54a
+5	1868	1780088946414368602	spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-download	afa9d9482b59a72e
+5	1868	1780088946414368602	/tmp/workspace/somat3k/Daydream_handler/build/_deps/spdlog-subbuild/spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-download	afa9d9482b59a72e
+1868	1878	1780088946415368616	spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-update	9b4acc11887d37df
+1868	1878	1780088946415368616	/tmp/workspace/somat3k/Daydream_handler/build/_deps/spdlog-subbuild/spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-update	9b4acc11887d37df
+1878	1882	1780088946428368798	spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-patch	192e51fea141b735
+1878	1882	1780088946428368798	/tmp/workspace/somat3k/Daydream_handler/build/_deps/spdlog-subbuild/spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-patch	192e51fea141b735
+1882	1886	1780088946432368854	spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-configure	af51085658383e6
+1882	1886	1780088946432368854	/tmp/workspace/somat3k/Daydream_handler/build/_deps/spdlog-subbuild/spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-configure	af51085658383e6
+1886	1890	1780088946436368910	spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-build	dd8a4c85df7dd1d4
+1886	1890	1780088946436368910	/tmp/workspace/somat3k/Daydream_handler/build/_deps/spdlog-subbuild/spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-build	dd8a4c85df7dd1d4
+1890	1894	1780088946440368966	spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-install	9b44e4ee742af6cf
+1890	1894	1780088946440368966	/tmp/workspace/somat3k/Daydream_handler/build/_deps/spdlog-subbuild/spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-install	9b44e4ee742af6cf
+1894	1898	1780088946444369022	spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-test	99988565e460184d
+1894	1898	1780088946444369022	/tmp/workspace/somat3k/Daydream_handler/build/_deps/spdlog-subbuild/spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-test	99988565e460184d
+1898	1903	1780088946450369106	CMakeFiles/spdlog-populate-complete	15c85e467998bc54
+1898	1903	1780088946450369106	spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-done	15c85e467998bc54
+1898	1903	1780088946450369106	/tmp/workspace/somat3k/Daydream_handler/build/_deps/spdlog-subbuild/CMakeFiles/spdlog-populate-complete	15c85e467998bc54
+1898	1903	1780088946450369106	/tmp/workspace/somat3k/Daydream_handler/build/_deps/spdlog-subbuild/spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-done	15c85e467998bc54
